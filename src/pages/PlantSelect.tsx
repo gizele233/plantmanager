@@ -100,6 +100,7 @@ export function PlantSelect(){
     },[])
 
     useEffect(()=>{
+        fetchPlants();
     },[])
 
     if(loading)
