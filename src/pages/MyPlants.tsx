@@ -3,17 +3,20 @@ import{
     StyleSheet,
     View,
     Text,
-    Image
+    Image,
+    Alert
 } from 'react-native';
 import {Header} from '../components/Header';
 import colors from '../styles/colors';
 import waterdrop from '../assets/waterdrop.png';
-import { loadPlant, PlantProps } from '../libs/storage';
+import { loadPlant, PlantProps, removePlant } from '../libs/storage';
 import { formatDistance } from 'date-fns/esm';
 import { pt } from 'date-fns/locale';
 import { FlatList } from 'react-native-gesture-handler';
 import fonts from '../styles/fonts';
 import { PlantCardSecondary } from '../components/PlantCardSecondary';
+import { Load } from '../components/Load';
+
 
 
 export function MyPlants(){
@@ -21,6 +24,28 @@ export function MyPlants(){
     const [loading, setLoading] = useState(true);
     const [nextWatered, setNextWatered] = useState<string>(); 
 
+
+    function handleRemove(plant: PlantProps){
+        Alert.alert('Remover', `Deseja remover a ${plant.name}?`,[
+            {
+                text: 'Não',
+                style: 'cancel'
+            },
+            {
+                text: 'Sim',
+                onPress: async() =>{
+                    try{
+                        await removePlant(plant.id);
+                        setMyPlants((oldData) =>
+                            oldData.filter((item) => item.id === plant.id)
+                        );
+                    }catch(error){
+                        Alert.alert('Não foi possível resolver')
+                    }
+                }
+            }
+        ])
+    }
 
     useEffect(()=>{
         async function loadStorageData() {
@@ -44,8 +69,9 @@ export function MyPlants(){
        loadStorageData();
     })
 
+    if(loading)
+        return <Load/>
     return(
-        
         <View style={styles.container}>
             <Header/>  
             <View style={styles.spotlight}>
@@ -67,7 +93,9 @@ export function MyPlants(){
                     data={myPlants}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={({ item })=>(
-                        <PlantCardSecondary data={item}
+                        <PlantCardSecondary 
+                            data={item}
+                            handleRemove={()=>{handleRemove(item)}}
                         
                         />
                     )}
